@@ -1,0 +1,4 @@
+classTestReport为课中测班级测试报告主页面
+report_kzc为报告组件,这里kzc为课中测缩写
+favorite_kzc为收藏夹,一期不做,二期再做.内含收藏的报告,页面类似classTestReport.
+reportDetail_kzc为报告详情

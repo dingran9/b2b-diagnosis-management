@@ -1,0 +1,76 @@
+
+.el-tabs--border-card>.el-tabs__header .el-tabs__item{
+  width: 250px;
+  height: 51px;
+  line-height:51px;
+  background-color: rgba(225, 229, 236, 1);
+  color: #505050;
+  font-size: 18px;
+  border:0 none;
+  &.is-active {
+    background-color: rgba(255, 255, 255, 1);
+    color: #50ced9;
+  }
+}
+
+.el-tabs--border-card {
+  background: transparent;
+  border: 0 none;
+  box-shadow: none;
+}
+.el-tabs--border-card>.el-tabs__header{
+  margin-bottom: 30px;
+  border:0 none;
+}
+.el-tabs__content{
+  background: #fff;
+}
+.el-tabs__content{
+  padding: 0;
+}
+
+
+.getab-body-item{
+  $bgc:#fff;
+  $pad_l : 50px;
+  padding-bottom:50px;
+  >.tab-title {
+    text-align: left;
+    font-size: 18px;
+    color: #505050;
+    $h: 60px;
+    height: $h;
+    padding:{
+      left: $pad_l;
+    }
+    line-height:$h;
+    background-color: $bgc;
+    border-bottom: 1px solid #e1e5ec;
+  }
+  >.tab-body{
+    margin:{
+      left: $pad_l;
+      right: $pad_l;
+      top:30px;
+      bottom: 67px;
+    }
+    background-color: $bgc;
+  }
+}
+
+.ge-table-title-item{
+  $h:50px;
+  background-color: rgba(139, 182, 196, 1);
+  height:$h;
+  line-height:$h;
+  color:white;
+  font-size: 18px;
+  text-align: center;
+  border-right: 1px solid #fff;
+  &:last-child{
+    border-right:0 none;
+  }
+}
+.ge-bable-body-item{
+
+}

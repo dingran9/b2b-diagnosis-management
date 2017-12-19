@@ -1,0 +1,8 @@
+common是公共目录，2个文件共同用到的组件，或者可能会被复用的组件（含报告详情）
+disciplineEvaluation是学科测评目录下所有组件
+login登录
+main页面架构（含侧边栏）
+myClass我的班级
+page暂空
+releaseTesting发布测试、
+syncCoach同步辅导

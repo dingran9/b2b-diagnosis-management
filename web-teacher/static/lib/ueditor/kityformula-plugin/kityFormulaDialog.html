@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="renderer" content="webkit">
+    <link rel="stylesheet" href="kityformula/assets/styles/base.css">
+    <link rel="stylesheet" href="kityformula/assets/styles/ui.css">
+    <link rel="stylesheet" href="kityformula/assets/styles/scrollbar.css">
+    <style>
+        html, body {
+            padding: 0;
+            margin: 0;
+        }
+        .kf-editor {
+            width: 780px;
+            height: 380px;
+        }
+        #loading {
+            height: 32px;
+            width: 340px;
+            line-height: 32px;
+            position: absolute;
+            top: 42%;
+            left: 50%;
+            margin-left: -170px;
+            font-family: arial, "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+        }
+        #loading img {
+            position: absolute;
+        }
+        #loading p {
+            display: block;
+            position: absolute;
+            left: 40px;
+            top: 0px;
+            margin: 0;
+        }
+
+    </style>
+    <title></title>
+</head>
+<body>
+<div id="kfEditorContainer" class="kf-editor">
+    <div id="tips" class="tips">
+        sorry! Beta版本仅支持IE9及以上版本的浏览器，正式版本将会支持低版本浏览器，谢谢您的关注！
+    </div>
+</div>
+<!--页面中一定要引入internal.js为了能直接使用当前打开dialog的实例变量-->
+<!--internal.js默认是放到dialogs目录下的-->
+<script type="text/javascript" src="../dialogs/internal.js"></script>
+
+<script src="kityformula/js/jquery-1.11.0.min.js"></script>
+<script src="kityformula/js/kitygraph.all.js"></script>
+<script src="kityformula/js/kity-formula-render.all.js"></script>
+<script src="kityformula/js/kity-formula-parser.all.min.js"></script>
+<script src="kityformula/js/kityformula-editor.all.min.js"></script>
+<script src="http://cdn.bootcss.com/blueimp-md5/1.1.0/js/md5.min.js"></script>
+<script>
+    jQuery( function ($) {
+
+        if ( document.body.addEventListener ) {
+
+            $( "#tips").html('<div id="loading"><img src="kityformula/loading.gif" alt="loading" /><p>正在加载，请耐心等待...</p></div>' );
+
+            var factory = kf.EditorFactory.create( $( "#kfEditorContainer" )[ 0 ], {
+                render: {
+                    fontsize: 24
+                },
+                resource: {
+                    path: "./kityformula/resource/"
+                }
+            } );
+
+            factory.ready( function ( KFEditor ) {
+
+                $( "#tips").remove();
+
+                // this指向KFEditor
+                var rng = editor.selection.getRange(),
+                    img = rng.getClosedNode(),
+                    imgLatex = img && $(img).attr('data-latex');
+
+                this.execCommand( "render", imgLatex || "\\placeholder" );
+                this.execCommand( "focus" );
+
+                window.kfe = this;
+
+            } );
+
+            dialog.onok = function(){
+                kfe.execCommand('get.image.data', function(data){
+                    var latex = kfe.execCommand('get.source');
+                    //在这里将base64处理为http的路径
+//                  console.log(data.img);
+                    uploadByForm(data.img,function(imgurl){
+                    		
+                    		console.log(imgurl);
+                    		editor.execCommand('inserthtml', '<img class="kfformula" src="'+ imgurl +'" data-latex="' + latex + '" />');
+                    		dialog.close();
+                    })
+//                  editor.execCommand('inserthtml', '<img class="kfformula" src="'+ data.img +'" data-latex="' + latex + '" />');
+//                  dialog.close();
+                });
+
+                return false;
+            }
+
+        } else {
+            $( "#tips").css( "color", "black" );
+            $( "#tips").css( "padding", "10px" );
+        }
+				//转换为blob
+				function convertBase64UrlToBlob(urlData) {
+				　　var arr = urlData.split(','),//去掉url的头，并转换为byte
+				　　type = arr[0].match(/:(.*?);/)[1],
+				　　fileExt = type.split('/')[1],
+				　　bstr = atob(arr[1]),
+				　　n = bstr.length,
+				　　u8arr = new Uint8Array(n);
+				　　while(n--) {
+				　　　　u8arr[n] = bstr.charCodeAt(n);
+				　　}
+				　　return new Blob([u8arr], { type: type});
+				}
+				//转换为file
+				function convertBase64UrlToFile(urlData) {
+					  var arr = urlData.split(','),
+					  type= arr[0].match(/:(.*?);/)[1],
+					  fileExt = type.split('/')[1],
+					  bstr = atob(arr[1]),
+					  n = bstr.length,
+					  u8arr = new Uint8Array(n);
+					  while(n--) {
+					      u8arr[n] = bstr.charCodeAt(n);
+					  }
+//					  console.log("fileName."+fileExt);
+//					  console.log(type);
+					  return new File([u8arr],"fileName."+fileExt,{type:type});
+				}
+				
+				//上传到云盘
+				function uploadByForm (base64data,callback) {
+				//  let that = this
+				    // 定义文件类型
+				    let options = {
+				      'bucket': 'keepmark',
+				      'save-key': '/{year}/{mon}/{day}/{filemd5}{.suffix}',
+				      'expiration': Math.floor(new Date().getTime() / 1000) + 86400
+				    }
+				    let policy = window.btoa(JSON.stringify(options))
+				    // form 表单秘钥
+				    let formApiSecret = 'WwbrepSiLMoTpx/+D2c+3klosIA='
+				    // 生成签名
+				    let signature = md5(policy + '&' + formApiSecret)
+				    let formData = new FormData() // 构造空对象，下面用append 方法赋值。
+				    formData.append('policy', policy)
+				    formData.append('signature', signature)
+				    formData.append('file', convertBase64UrlToFile(base64data))
+				    // ajax请求
+				    let XHR = new XMLHttpRequest()
+				    XHR.open('POST', 'http://v0.api.upyun.com/keepmark')
+				    XHR.onreadystatechange = function () {
+				      if (XHR.readyState === 4 && XHR.status === 200) {
+				        var resUrl = "http://keepmark.b0.upaiyun.com" + JSON.parse(XHR.responseText).url
+				        console.log(resUrl);
+				        callback(resUrl);
+				        XHR = null
+				      }
+				    }
+				    XHR.send(formData)
+				  }
+//				function putb64(base64) {
+//			    var pic = base64.replace(/^.*?,/, '');
+//			    $.ajax({
+//			        type: 'post',
+//			        url: "https://test.dankal.cn/wansj/public/index.php/api/Index/upToken",
+//			        success: function (data) {
+//			            var token = data.uptoken;
+//			            // 把字符串转换成json
+//			            function strToJson(str) {
+//			                var json = eval('(' + str + ')');
+//			                return json;
+//			            }
+//			            var url = "http://up-z0.qiniu.com/putb64/-1/";
+//			            var xhr = new XMLHttpRequest();
+//			            xhr.onreadystatechange = function () {
+//			                if (xhr.readyState == 4) {
+//			                    var keyText = xhr.responseText;
+//			                    // 返回的key是字符串，需要装换成json
+//			                    keyText = strToJson(keyText);
+//			                    //keyText.key 是返回的图片文件名
+//			                    var key = keyText.key;
+//			                    var getToken = $('.token').val();
+//			                    $.ajax({
+//			                        type: 'post',
+//			                        url: "http://test.dankal.cn/wansj/public/index.php/api/Index/getShareUrl",
+//			                        data:{
+//			                            token:getToken,
+//			                            file_key:key,
+//			                        },
+//			                        success: function (data) {
+//			                            var shareUrl = data.share_url;
+//			                            console.log(shareUrl);
+//			                        },
+//			                        error: function () {
+//			                            console.log("上传base64至七牛失败");
+//			                        }
+//			                    })
+//			                }
+//			            }
+//			            xhr.open("POST", url, true);
+//			            xhr.setRequestHeader("Content-Type", "application/octet-stream");
+//			            xhr.setRequestHeader("Authorization", "UpToken " + token);
+//			            xhr.send(pic);
+//			        },
+//			        error: function () {
+//			            console.log("sendFile请求出错");
+////			            $('.loading').html("亲，真抱歉，图片上传失败");
+//			        }
+//			    })
+//			}
+				
+				
+    } );
+</script>
+</body>
+</html>
